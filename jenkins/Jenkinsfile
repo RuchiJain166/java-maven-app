@@ -5,6 +5,11 @@ pipeline {
             args '-v /root/.m2:/root/.m2'
         }
     }
+        environment{
+        
+        registry = "datagridsol/java-maven"
+        registryCredential = 'Dockerhub'        
+    }
     stages {
         stage('Build') {
             steps {
@@ -26,5 +31,21 @@ pipeline {
                 sh './jenkins/scripts/deliver.sh'
             }
         }
+               stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+       stage('Deploy Image') {
+      steps{
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+            }
+        }
+      }
+    }
     }
 }
